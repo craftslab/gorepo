@@ -50,7 +50,6 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - depguard
     - dogsled
     - errcheck
     - funlen
@@ -65,28 +64,29 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - lll
     - misspell
     - nakedret
     - rowserrcheck
-    - scopelint
     - staticcheck
-    - structcheck
     - typecheck
     - unconvert
     - whitespace
 
   # don't enable:
   # - deadcode
+  # - depguard
   # - dupl
   # - gochecknoglobals
   # - gocognit
   # - godox
   # - goimports
   # - golint
+  # - interfacer
   # - maligned
   # - prealloc
+  # - scopelint
+  # - structcheck
   # - stylecheck
   # - unparam
   # - unused

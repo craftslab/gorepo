@@ -42,9 +42,18 @@ const (
 	Time2 = "Mon Jan 2 15:04:05 2006 -0700"
 )
 
+const (
+	manifestBranch = "--manifest-branch="
+	manifestName   = "--manifest-name="
+	manifestUrl    = "--manifest-url="
+	repoUrl        = "--repo-url="
+	repoDepth      = "--depth="
+)
+
 type Repo struct {
 }
 
+// nolint: gosec
 func (r Repo) Init(i *config.Init, g *config.Gitiles) error {
 	if (i.Depth > 0 && i.TagSince != "") ||
 		(i.Depth > 0 && i.TimeSince != "") ||
@@ -53,18 +62,18 @@ func (r Repo) Init(i *config.Init, g *config.Gitiles) error {
 	}
 
 	cmd := exec.Command("repo", "init",
-		"--manifest-branch="+i.ManifestBranch,
-		"--manifest-name="+i.ManifestName,
-		"--manifest-url="+i.ManifestUrl,
-		"--repo-url="+i.RepoUrl,
-		"--depth="+strconv.Itoa(i.Depth))
+		manifestBranch+i.ManifestBranch,
+		manifestName+i.ManifestName,
+		manifestUrl+i.ManifestUrl,
+		repoUrl+i.RepoUrl,
+		repoDepth+strconv.Itoa(i.Depth))
 
 	if err := r.Run(cmd); err != nil {
 		return errors.Wrap(err, "init failed")
 	}
 
 	cmd = exec.Command("repo", "manifest",
-		"--manifest-name="+i.ManifestName,
+		manifestName+i.ManifestName,
 		"--output-file=manifest.xml")
 
 	if err := r.Run(cmd); err != nil {
@@ -92,6 +101,7 @@ func (r Repo) Init(i *config.Init, g *config.Gitiles) error {
 	return nil
 }
 
+// nolint: gosec
 func (r Repo) Sync(s *config.Sync) error {
 	var verbose string
 
@@ -125,7 +135,7 @@ func (r Repo) Check() error {
 	buf := strings.Split(string(out), "\n")
 	for _, item := range buf {
 		if strings.HasPrefix(item, Prefix) {
-			b := strings.Trim(item, Prefix)
+			b := strings.TrimPrefix(item, Prefix)
 			version = strings.Split(b, ".")
 			break
 		}
@@ -191,12 +201,12 @@ func (r Repo) Run(c *exec.Cmd) error {
 }
 
 func (r Repo) DepthAfterTag(project, tag string, c *config.Gitiles) (int, error) {
-	// TODO
+	// TODO: FIXME
 	return 0, nil
 }
 
 func (r Repo) ShallowAfterTag(name, tag string, c *config.Gitiles) error {
-	// TODO
+	// TODO: FIXME
 	return nil
 }
 
@@ -215,7 +225,7 @@ func (r Repo) DepthAfterTime(project, branch, _time string, c *config.Gitiles) (
 	depth := 0
 	t, _ := time.Parse(Time1, _time)
 
-	// TODO
+	// TODO: FIXME
 	for _, val := range buf["log"].([]interface{}) {
 		c := val.(map[string]interface{})["committer"].(map[string]interface{})
 		b, _ := time.Parse(Time2, c["time"].(string))
@@ -245,7 +255,8 @@ func (r Repo) ShallowAfterTime(name, _time string, c *config.Gitiles) error {
 		if err != nil {
 			return errors.Wrap(err, "project failed")
 		}
-		if match, _ := regexp.MatchString(SHA1, rev); match {
+		re := regexp.MustCompile(SHA1)
+		if matched := re.MatchString(rev); matched {
 			continue
 		}
 		if _, err := strconv.Atoi(d); err != nil {

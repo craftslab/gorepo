@@ -1,14 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <manifest>
-  <remote  name="aosp"
-           fetch=".."
-           review="https://android-review.googlesource.com/" />
-  <default revision="master"
-           remote="aosp"
-           sync-j="4" />
-  <manifest-server url="http://android-smartsync.corp.google.com/android.googlesource.com/manifestserver" />
-  <project groups="pdk" name="platform/build" path="build/make" />
-  <project groups="pdk,tradefed" name="platform/build/blueprint" path="build/blueprint" clone-depth="1" />
-  <project groups="pdk,tradefed" name="platform/build/soong" path="build/soong" revision="14a08f5b2881fb67d772dfec2e3d0eaa189ba9d1" />
+  <default remote="aosp" revision="master" sync-j="4"/>
+  <manifest-server url="http://android-smartsync.corp.google.com/android.googlesource.com/manifestserver"/>
+  <project clone-depth="100" groups="pdk" name="platform/build" path="build/make"/>
+  <project clone-depth="1" groups="pdk,tradefed" name="platform/build/blueprint" path="build/blueprint"/>
+  <project groups="pdk,tradefed" name="platform/build/soong" path="build/soong" revision="14a08f5b2881fb67d772dfec2e3d0eaa189ba9d1"/>
   <project groups="pdk" name="platform/art" path="art" revision="android10-release"/>
+  <remote fetch=".." name="aosp" review="https://android-review.googlesource.com/"/>
 </manifest>

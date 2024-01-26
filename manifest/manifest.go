@@ -54,7 +54,7 @@ func (m Manifest) Projects() ([]interface{}, error) {
 	return buf.([]interface{}), nil
 }
 
-func (m Manifest) Project(data map[string]interface{}) (string, string, string, string, error) {
+func (m Manifest) Project(data map[string]interface{}) (depth, name, path, revision string, err error) {
 	if m.manifest == nil || len(m.manifest) != 1 {
 		return "", "", "", "", errors.New("manifest invalid")
 	}
@@ -67,7 +67,6 @@ func (m Manifest) Project(data map[string]interface{}) (string, string, string, 
 		return "", "", "", "", errors.New("default invalid")
 	}
 
-	depth := ""
 	if d, ok := data["-clone-depth"]; ok {
 		depth = d.(string)
 	}
@@ -75,14 +74,13 @@ func (m Manifest) Project(data map[string]interface{}) (string, string, string, 
 	if _, ok := data["-name"]; !ok {
 		return depth, "", "", "", errors.New("name invalid")
 	}
-	name := data["-name"].(string)
+	name = data["-name"].(string)
 
-	path := name
+	path = name
 	if p, ok := data["-path"]; ok {
 		path = p.(string)
 	}
 
-	revision := ""
 	if r, ok := data["-revision"]; ok {
 		revision = r.(string)
 	} else if r, ok := m.manifest[0]["manifest"].(map[string]interface{})["default"].(map[string]interface{})["-revision"]; ok {

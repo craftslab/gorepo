@@ -15,53 +15,47 @@ package manifest
 import (
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLoad(t *testing.T) {
 	m := Manifest{}
 
-	if err := m.Load("../test/manifest-1.xml"); err != nil {
-		t.Error("FAIL")
-	}
+	err := m.Load("../test/manifest-1.xml")
+	assert.Equal(t, nil, err)
 }
 
 func TestProjects(t *testing.T) {
 	m := Manifest{}
 
-	if err := m.Load("../test/manifest-1.xml"); err != nil {
-		t.Error("FAIL")
-	}
+	err := m.Load("../test/manifest-1.xml")
+	assert.Equal(t, nil, err)
 
-	if _, err := m.Projects(); err != nil {
-		t.Error("FAIL")
-	}
+	_, err = m.Projects()
+	assert.Equal(t, nil, err)
 }
 
 func TestProject(t *testing.T) {
 	m := Manifest{}
 
-	if err := m.Load("../test/manifest-1.xml"); err != nil {
-		t.Error("FAIL")
-	}
+	err := m.Load("../test/manifest-1.xml")
+	assert.Equal(t, nil, err)
 
 	projects, err := m.Projects()
-	if err != nil {
-		t.Error("FAIL")
-	}
+	assert.Equal(t, nil, err)
 
 	for _, val := range projects {
-		if _, _, _, _, err := m.Project(val.(map[string]interface{})); err != nil {
-			t.Error("FAIL")
-		}
+		_, _, _, _, err := m.Project(val.(map[string]interface{}))
+		assert.Equal(t, nil, err)
 	}
 }
 
 func TestUpdate(t *testing.T) {
 	m := Manifest{}
 
-	if err := m.Load("../test/manifest-1.xml"); err != nil {
-		t.Error("FAIL")
-	}
+	err := m.Load("../test/manifest-1.xml")
+	assert.Equal(t, nil, err)
 
 	buf := make([]interface{}, 1)
 
@@ -71,21 +65,18 @@ func TestUpdate(t *testing.T) {
 		"path":   "build/make",
 	}
 
-	if err := m.Update(buf); err != nil {
-		t.Error("FAIL")
-	}
+	err = m.Update(buf)
+	assert.Equal(t, nil, err)
 }
 
 func TestWrite(t *testing.T) {
 	m := Manifest{}
 
-	if err := m.Load("../test/manifest-1.xml"); err != nil {
-		t.Error("FAIL")
-	}
+	err := m.Load("../test/manifest-1.xml")
+	assert.Equal(t, nil, err)
 
-	if err := m.Write("../test/manifest-1-new.xml"); err != nil {
-		t.Error("FAIL")
-	}
+	err = m.Write("../test/manifest-1-new.xml")
+	assert.Equal(t, nil, err)
 
 	_ = os.RemoveAll("../test/manifest-1-new.xml")
 }

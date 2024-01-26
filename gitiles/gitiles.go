@@ -14,7 +14,7 @@ package gitiles
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -22,12 +22,20 @@ import (
 )
 
 const (
-	OP_BRANCH = "branch:"
-	OP_COMMIT = "commit:"
-	OP_TAG    = "tag:"
+	urlConcat = "/+/"
+	urlFormat = "format=JSON"
+	urlHeads  = "refs/heads/"
+	urlLog    = "/+log/"
+	urlSearch = "/?s="
+	urlTags   = "refs/tags/"
+)
 
-	OP_DELIMITER = " "
-	OP_GROUPS    = 2
+const (
+	opBranch    = "branch:"
+	opCommit    = "commit:"
+	opDelimiter = " "
+	opGroups    = 2
+	opTag       = "tag:"
 )
 
 type Gitiles struct {
@@ -44,24 +52,34 @@ func (g *Gitiles) Init(url, user, pass string) error {
 	return nil
 }
 
+// Get
+//
 // Example:
-// branch:BRANCH: https://android.googlesource.com/platform/build/soong/+/refs/heads/master?format=JSON
+//
+// branch:BRANCH: https://android.googlesource.com/platform/build/soong/+/refs/heads/main?format=JSON
+//
 // commit:COMMIT: https://android.googlesource.com/platform/build/soong/+/42ada5cff3fca011b5a0d017955f14dc63898807?format=JSON
-//       tag:TAG: https://android.googlesource.com/platform/build/soong/+/refs/tags/android-vts-10.0_r4
+//
+// tag:TAG: https://android.googlesource.com/platform/build/soong/+/refs/tags/android-vts-10.0_r4?format=JSON
+//
+// nolint: lll
 func (g Gitiles) Get(project, operator string) (map[string]interface{}, error) {
 	var buf map[string]interface{}
 	var err error
 
-	if project == "" || operator == "" || len(strings.Split(operator, OP_DELIMITER)) >= OP_GROUPS {
+	if project == "" || operator == "" || len(strings.Split(operator, opDelimiter)) >= opGroups {
 		return nil, errors.New("parameter invalid")
 	}
 
-	if strings.HasPrefix(operator, OP_BRANCH) {
-		branch := strings.TrimPrefix(operator, OP_BRANCH)
-		buf, err = g.request(g.url+"/"+project+"/+/"+"refs/heads/"+branch+"?format=JSON", g.user, g.pass)
-	} else if strings.HasPrefix(operator, OP_COMMIT) {
-		commit := strings.TrimPrefix(operator, OP_COMMIT)
-		buf, err = g.request(g.url+"/"+project+"/+/"+commit+"?format=JSON", g.user, g.pass)
+	if strings.HasPrefix(operator, opBranch) {
+		branch := strings.TrimPrefix(operator, opBranch)
+		buf, err = g.request(g.url+"/"+project+urlConcat+urlHeads+branch+"?"+urlFormat, g.user, g.pass)
+	} else if strings.HasPrefix(operator, opCommit) {
+		commit := strings.TrimPrefix(operator, opCommit)
+		buf, err = g.request(g.url+"/"+project+urlConcat+commit+"?"+urlFormat, g.user, g.pass)
+	} else if strings.HasPrefix(operator, opTag) {
+		tag := strings.TrimPrefix(operator, opTag)
+		buf, err = g.request(g.url+"/"+project+urlConcat+urlTags+tag+"?"+urlFormat, g.user, g.pass)
 	} else {
 		err = errors.New("operator invalid")
 	}
@@ -73,27 +91,35 @@ func (g Gitiles) Get(project, operator string) (map[string]interface{}, error) {
 	return buf, nil
 }
 
+// Query
+//
 // Example:
-//               branch:BRANCH: https://android.googlesource.com/platform/build/soong/+log/refs/heads/master?format=JSON
-// branch:BRANCH commit:COMMIT: https://android.googlesource.com/platform/build/soong/+log/refs/heads/master/?s=42ada5cff3fca011b5a0d017955f14dc63898807&format=JSON
-//                     tag:TAG: https://android.googlesource.com/platform/build/soong/+log/refs/tags/android-vts-10.0_r4?format=JSON
-//       tag:TAG commit:COMMIT: https://android.googlesource.com/platform/build/soong/+log/refs/tags/android-vts-10.0_r4/?s=9863d53618714a36c3f254d949497a7eb2d11863&format=JSON
+//
+// branch:BRANCH: https://android.googlesource.com/platform/build/soong/+log/refs/heads/main?format=JSON
+//
+// branch:BRANCH commit:COMMIT: https://android.googlesource.com/platform/build/soong/+log/refs/heads/main/?s=42ada5cff3fca011b5a0d017955f14dc63898807&format=JSON
+//
+// tag:TAG: https://android.googlesource.com/platform/build/soong/+log/refs/tags/android-vts-10.0_r4?format=JSON
+//
+// tag:TAG commit:COMMIT: https://android.googlesource.com/platform/build/soong/+log/refs/tags/android-vts-10.0_r4/?s=9863d53618714a36c3f254d949497a7eb2d11863&format=JSON
+//
+// nolint: gocyclo,lll
 func (g Gitiles) Query(project, operator string) (map[string]interface{}, error) {
 	parser := func(op string) (string, string, string, error) {
 		var branch, commit, tag string
 
-		buf := strings.Split(op, OP_DELIMITER)
-		if len(buf) > OP_GROUPS {
+		buf := strings.Split(op, opDelimiter)
+		if len(buf) > opGroups {
 			return "", "", "", errors.New("operator invalid")
 		}
 
 		for _, val := range buf {
-			if strings.HasPrefix(val, OP_BRANCH) {
-				branch = strings.TrimPrefix(val, OP_BRANCH)
-			} else if strings.HasPrefix(val, OP_COMMIT) {
-				commit = strings.TrimPrefix(val, OP_COMMIT)
-			} else if strings.HasPrefix(val, OP_TAG) {
-				tag = strings.TrimPrefix(val, OP_TAG)
+			if strings.HasPrefix(val, opBranch) {
+				branch = strings.TrimPrefix(val, opBranch)
+			} else if strings.HasPrefix(val, opCommit) {
+				commit = strings.TrimPrefix(val, opCommit)
+			} else if strings.HasPrefix(val, opTag) {
+				tag = strings.TrimPrefix(val, opTag)
 			} else {
 				continue
 			}
@@ -124,15 +150,15 @@ func (g Gitiles) Query(project, operator string) (map[string]interface{}, error)
 
 	if branch != "" {
 		if commit != "" {
-			buf, err = g.request(g.url+"/"+project+"/+log/"+"refs/heads/"+branch+"/?s="+commit+"&format=JSON", g.user, g.pass)
+			buf, err = g.request(g.url+"/"+project+urlLog+urlHeads+branch+urlSearch+commit+"&"+urlFormat, g.user, g.pass)
 		} else {
-			buf, err = g.request(g.url+"/"+project+"/+log/"+"refs/heads/"+branch+"?format=JSON", g.user, g.pass)
+			buf, err = g.request(g.url+"/"+project+urlLog+urlHeads+branch+"?"+urlFormat, g.user, g.pass)
 		}
 	} else if tag != "" {
 		if commit != "" {
-			buf, err = g.request(g.url+"/"+project+"/+log/"+"refs/tags/"+tag+"/?s="+commit+"&format=JSON", g.user, g.pass)
+			buf, err = g.request(g.url+"/"+project+urlLog+urlTags+tag+urlSearch+commit+"&"+urlFormat, g.user, g.pass)
 		} else {
-			buf, err = g.request(g.url+"/"+project+"/+log/"+"refs/tags/"+tag+"?format=JSON", g.user, g.pass)
+			buf, err = g.request(g.url+"/"+project+urlLog+urlTags+tag+"?"+urlFormat, g.user, g.pass)
 		}
 	} else {
 		err = errors.New("operator invalid")
@@ -148,7 +174,7 @@ func (g Gitiles) Query(project, operator string) (map[string]interface{}, error)
 func (g Gitiles) request(url, user, pass string) (map[string]interface{}, error) {
 	var buf map[string]interface{}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, errors.Wrap(err, "request failed")
 	}
@@ -170,7 +196,7 @@ func (g Gitiles) request(url, user, pass string) (map[string]interface{}, error)
 		return nil, errors.New("client failed")
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, errors.New("read failed")
 	}

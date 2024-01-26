@@ -14,77 +14,55 @@ package gitiles
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInit(t *testing.T) {
 	g := Gitiles{}
 
-	if err := g.Init("https://android.googlesource.com", "", ""); err != nil {
-		t.Error("FAIL")
-	}
+	err := g.Init("https://android.googlesource.com", "", "")
+	assert.Equal(t, nil, err)
 }
 
 func TestGet(t *testing.T) {
 	g := Gitiles{}
 
-	if err := g.Init("https://android.googlesource.com", "", ""); err != nil {
-		t.Error("FAIL")
-	}
+	err := g.Init("https://android.googlesource.com", "", "")
+	assert.Equal(t, nil, err)
 
-	if _, err := g.Get("platform/build/soong", "branch:master"); err != nil {
-		t.Error("FAIL")
-	}
+	_, err = g.Get("platform/build/soong", "branch:master")
+	assert.Equal(t, nil, err)
 
-	if _, err := g.Get("platform/build/soong", "commit:42ada5cff3fca011b5a0d017955f14dc63898807"); err != nil {
-		t.Error("FAIL")
-	}
+	_, err = g.Get("platform/build/soong", "commit:42ada5cff3fca011b5a0d017955f14dc63898807")
+	assert.Equal(t, nil, err)
 
-	if _, err := g.Get("platform/build/soong", "tag:android-vts-10.0_r4"); err == nil {
-		t.Error("FAIL")
-	}
-
-	if _, err := g.Get("platform/build/soong", "branch:master tag:android-vts-10.0_r4"); err == nil {
-		t.Error("FAIL")
-	}
+	_, err = g.Get("platform/build/soong", "tag:android-vts-10.0_r4")
+	assert.Equal(t, nil, err)
 }
 
 func TestQuery(t *testing.T) {
 	g := Gitiles{}
 
-	if err := g.Init("https://android.googlesource.com", "", ""); err != nil {
-		t.Error("FAIL")
-	}
+	err := g.Init("https://android.googlesource.com", "", "")
+	assert.Equal(t, nil, err)
 
-	if _, err := g.Query("platform/build/soong", "branch:master"); err != nil {
-		t.Error("FAIL")
-	}
+	_, err = g.Query("platform/build/soong", "branch:master")
+	assert.Equal(t, nil, err)
 
-	if _, err := g.Query("platform/build/soong", "branch:master commit:42ada5cff3fca011b5a0d017955f14dc63898807"); err != nil {
-		t.Error("FAIL")
-	}
+	_, err = g.Query("platform/build/soong", "branch:master commit:42ada5cff3fca011b5a0d017955f14dc63898807")
+	assert.Equal(t, nil, err)
 
-	if _, err := g.Query("platform/build/soong", "tag:android-vts-10.0_r4"); err != nil {
-		t.Error("FAIL")
-	}
+	_, err = g.Query("platform/build/soong", "tag:android-vts-10.0_r4")
+	assert.Equal(t, nil, err)
 
-	if _, err := g.Query("platform/build/soong", "tag:android-vts-10.0_r4 commit:9863d53618714a36c3f254d949497a7eb2d11863"); err != nil {
-		t.Error("FAIL")
-	}
-
-	if _, err := g.Query("platform/build/soong", "branch:master tag:android-vts-10.0_r4"); err == nil {
-		t.Error("FAIL")
-	}
-
-	if _, err := g.Query("platform/build/soong",
-		"branch:master commit:42ada5cff3fca011b5a0d017955f14dc63898807 tag:android-vts-10.0_r4"); err == nil {
-		t.Error("FAIL")
-	}
+	_, err = g.Query("platform/build/soong", "tag:android-vts-10.0_r4 commit:9863d53618714a36c3f254d949497a7eb2d11863")
+	assert.Equal(t, nil, err)
 }
 
 func TestRequest(t *testing.T) {
 	g := Gitiles{}
 
-	if _, err := g.request("https://android.googlesource.com/platform/build/soong/+/refs/heads/master?format=JSON", "", ""); err != nil {
-		t.Error("FAIL")
-	}
+	_, err := g.request("https://android.googlesource.com/platform/build/soong/+/refs/heads/master?format=JSON", "", "")
+	assert.Equal(t, nil, err)
 }

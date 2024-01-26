@@ -16,6 +16,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"gorepo/config"
 )
 
@@ -38,16 +40,14 @@ func TestInit(t *testing.T) {
 	i.Depth = 1
 	i.TagSince = "android10-release"
 	i.TimeSince = "2020-06-25T00:00:00"
-	if err := r.Init(&i, &g); err == nil {
-		t.Error("FAIL")
-	}
+	err := r.Init(&i, &g)
+	assert.NotEqual(t, nil, err)
 
 	i.Depth = 1
 	i.TagSince = ""
 	i.TimeSince = ""
-	if err := r.Init(&i, &g); err != nil {
-		t.Error("FAIL")
-	}
+	err = r.Init(&i, &g)
+	assert.Equal(t, nil, err)
 
 	_ = os.RemoveAll(".repo")
 }
@@ -55,17 +55,16 @@ func TestInit(t *testing.T) {
 func TestCheck(t *testing.T) {
 	r := Repo{}
 
-	if err := r.Check(); err != nil {
-		t.Error("FAIL")
-	}
+	err := r.Check()
+	assert.Equal(t, nil, err)
 }
 
 func TestDepthAfterTag(t *testing.T) {
-	// TODO
+	// TODO: FIXME
 }
 
 func TestShallowAfterTag(t *testing.T) {
-	// TODO
+	// TODO: FIXME
 }
 
 func TestDepthAfterTime(t *testing.T) {
@@ -77,9 +76,8 @@ func TestDepthAfterTime(t *testing.T) {
 
 	r := Repo{}
 
-	if _, err := r.DepthAfterTime("platform/build/soong", "master", "2020-06-25T00:00:00", &c); err != nil {
-		t.Error("FAIL")
-	}
+	_, err := r.DepthAfterTime("platform/build/soong", "master", "2020-06-25T00:00:00", &c)
+	assert.Equal(t, nil, err)
 }
 
 func TestShallowAfterTime(t *testing.T) {
@@ -91,7 +89,6 @@ func TestShallowAfterTime(t *testing.T) {
 
 	r := Repo{}
 
-	if err := r.ShallowAfterTime("../test/manifest-1.xml", "2020-06-25T00:00:00", &c); err != nil {
-		t.Error("FAIL")
-	}
+	err := r.ShallowAfterTime("../test/manifest-1.xml", "2020-06-25T00:00:00", &c)
+	assert.Equal(t, nil, err)
 }
